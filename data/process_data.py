@@ -3,6 +3,7 @@ import os
 
 import pandas as pd
 import numpy as np
+import sqlalchemy
 import tabulate
 
 # read and explode the categories column categories dataframe
@@ -31,4 +32,8 @@ print("Number of duplicate rows:", df.duplicated().sum())
 print("Dropping duplicate rows")
 df = df.drop_duplicates(ignore_index=True)
 print("Number of duplicate rows after dropping:", df.duplicated().sum())
-print(tabulate.tabulate(df.head(), header="keys"))
+print(tabulate.tabulate(df.head(), headers="keys"))
+
+# insert to database
+engine = sqlalchemy.create_engine("sqlite:///DisasterResponse.db")
+df.to_sql("DisasterResponseTable", engine, index=False)
