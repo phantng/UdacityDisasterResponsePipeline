@@ -19,6 +19,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.metrics import classification_report
+from sklearn.preprocessing import MultiLabelBinarizer
 
 from preprocess_utils import tokenize
 
@@ -49,7 +50,7 @@ def build_model():
     pipeline = Pipeline([("vectorizer", vectorizer), ("clf", clf)])
 
     # search for best parameters among specified
-    param_grid = {"clf__estimator__max_depth": [2, 5]}
+    param_grid = {"clf__estimator__max_depth": [2, 4]}
     model = GridSearchCV(pipeline, param_grid=param_grid, n_jobs=-1, cv=4, refit=True,
                          return_train_score=True, verbose=1)
     return model
@@ -64,8 +65,9 @@ def evaluate_model(model, x_test, y_test, category_names: list[str]):
     :param category_names: names of columns for test targets
     :return: None
     """
-    Y_pred = model.predict(x_test)
-    report = classification_report(y_test, Y_pred, target_names=category_names)
+    y_pred = model.predict(x_test)
+    mlb = MultiLabelBinarizer().fit(y_test)
+    report = classification_report(mlb.transform(y_test), mlb.transform(y_pred), target_names=category_names)
     print(report)
 
 
