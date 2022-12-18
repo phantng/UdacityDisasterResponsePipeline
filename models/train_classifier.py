@@ -44,7 +44,7 @@ def build_model():
     pipeline = Pipeline([("vectorizer", vectorizer), ("clf", clf)])
 
     # search for best parameters among specified
-    param_grid = {"clf__max_depth": [2, 3]}
+    param_grid = {"clf__max_depth": [3]}
     multiclass_scorer = make_scorer(compute_avg_columnwise_accuracy)
     model = GridSearchCV(pipeline, param_grid=param_grid, n_jobs=-1, cv=4, refit=True, scoring=multiclass_scorer,
                          return_train_score=True, verbose=3)
