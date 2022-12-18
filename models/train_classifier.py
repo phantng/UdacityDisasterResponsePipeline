@@ -12,9 +12,10 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.metrics import make_scorer
+from sklearn.metrics import accuracy_score
 
-from preprocess_utils import tokenize  # to work with pickle
+from preprocess_utils import tokenize, compute_avg_columnwise_accuracy  # to work with pickle
 
 
 def load_data(path: str = "../data/DisasterResponse.db"):
@@ -39,13 +40,14 @@ def build_model():
     """
     # instantiate pipeline
     vectorizer = CountVectorizer(tokenizer=tokenize)
-    clf = RandomForestClassifier(random_state=42, criterion="gini", n_estimators=30)  # supports multi output by default
+    clf = RandomForestClassifier(n_estimators=32)
     pipeline = Pipeline([("vectorizer", vectorizer), ("clf", clf)])
 
     # search for best parameters among specified
-    param_grid = {"clf__max_depth": [2, 4]}
-    model = GridSearchCV(pipeline, param_grid=param_grid, n_jobs=-1, cv=4, refit=True,
-                         return_train_score=True, verbose=1)
+    param_grid = {"clf__max_depth": [2, 3]}
+    multiclass_scorer = make_scorer(compute_avg_columnwise_accuracy)
+    model = GridSearchCV(pipeline, param_grid=param_grid, n_jobs=-1, cv=4, refit=True, scoring=multiclass_scorer,
+                         return_train_score=True, verbose=3)
     return model
 
 
@@ -61,9 +63,10 @@ def evaluate_model(model, x_test, y_test, category_names: list[str]):
     y_pred = model.predict(x_test)
     result_df = pd.DataFrame()
     for idx, col in enumerate(category_names):
-        result_df.loc["accuracy", col] = accuracy_score(y_test[:, idx], y_pred[:, idx])
-        result_df.loc["roc_auc_score", col] = roc_auc_score(y_test[:, idx], y_pred[:, idx])
+        result_df[col] = None  # instantiate column
+        result_df.loc["accuracy_score", col] = accuracy_score(y_test.values[:, idx], y_pred[:, idx])
     print(result_df.to_string())
+    result_df.to_csv("result.csv", index=False)
     return result_df
 
 

@@ -1,8 +1,10 @@
 import re
 
+import numpy as np
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem.wordnet import WordNetLemmatizer
+from sklearn.metrics import accuracy_score
 
 
 def tokenize(text: str):  # , use_stemmer: bool = False, use_lemmatizer: bool = True):
@@ -20,3 +22,12 @@ def tokenize(text: str):  # , use_stemmer: bool = False, use_lemmatizer: bool = 
     tokens = [WordNetLemmatizer().lemmatize(w) for w in tokens]  # reduce word to lemma for keeping context
 
     return tokens
+
+
+def compute_avg_columnwise_accuracy(y_true, y_pred):
+    accuracy_results = []
+    for idx, column in enumerate(y_true.columns):
+        # compute individual column-wise accuracy
+        accuracy = accuracy_score(y_true.values[:, column].values, y_pred[:, idx])
+        accuracy_results.append(accuracy)
+    return np.mean(accuracy_results)  # return simple average of column accuracies
