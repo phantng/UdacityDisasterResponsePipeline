@@ -15,7 +15,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import make_scorer
 from sklearn.metrics import accuracy_score
 
-from preprocess_utils import tokenize, compute_avg_columnwise_accuracy  # to work with pickle
+from utils import tokenize, compute_avg_columnwise_accuracy  # to work with pickle
 
 
 def load_data(path: str = "../data/DisasterResponse.db"):
