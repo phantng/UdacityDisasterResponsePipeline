@@ -9,7 +9,7 @@ import sqlalchemy
 import nltk
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import make_scorer
@@ -39,7 +39,7 @@ def build_model():
     Returns a sklearn Estimator
     """
     # instantiate pipeline
-    vectorizer = CountVectorizer(tokenizer=tokenize)
+    vectorizer = TfidfVectorizer(tokenizer=tokenize)
     clf = RandomForestClassifier(n_estimators=32)
     pipeline = Pipeline([("vectorizer", vectorizer), ("clf", clf)])
 
