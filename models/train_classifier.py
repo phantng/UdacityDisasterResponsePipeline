@@ -1,5 +1,4 @@
 import os
-import re
 import sys
 import pickle
 
@@ -8,26 +7,20 @@ import numpy as np
 import sqlalchemy
 
 import nltk
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from nltk.stem.porter import PorterStemmer
-from nltk.stem.wordnet import WordNetLemmatizer
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.multioutput import MultiOutputClassifier
-from sklearn.metrics import classification_report
-from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.metrics import accuracy_score, roc_auc_score
 
-from preprocess_utils import tokenize
+from preprocess_utils import tokenize  # to work with pickle
 
 
 def load_data(path: str = "../data/DisasterResponse.db"):
     """
     Loads table from path to SQLite database
-    :param path: str path to SQLite file
+    :param path: str local path to SQLite file
     :return: tuple of (features, targets)
     """
     # read data from SQLite database into a dataframe
@@ -42,15 +35,15 @@ def load_data(path: str = "../data/DisasterResponse.db"):
 
 def build_model():
     """Build a model using sklearn and custom tokenizer.
-    Returns an sklearn Estimator
+    Returns a sklearn Estimator
     """
     # instantiate pipeline
     vectorizer = CountVectorizer(tokenizer=tokenize)
-    clf = MultiOutputClassifier(RandomForestClassifier(random_state=42, criterion="gini"))
+    clf = RandomForestClassifier(random_state=42, criterion="gini", n_estimators=30)  # supports multi output by default
     pipeline = Pipeline([("vectorizer", vectorizer), ("clf", clf)])
 
     # search for best parameters among specified
-    param_grid = {"clf__estimator__max_depth": [2, 4]}
+    param_grid = {"clf__max_depth": [2, 4]}
     model = GridSearchCV(pipeline, param_grid=param_grid, n_jobs=-1, cv=4, refit=True,
                          return_train_score=True, verbose=1)
     return model
@@ -66,9 +59,12 @@ def evaluate_model(model, x_test, y_test, category_names: list[str]):
     :return: None
     """
     y_pred = model.predict(x_test)
-    mlb = MultiLabelBinarizer().fit(y_test)
-    report = classification_report(mlb.transform(y_test), mlb.transform(y_pred), target_names=category_names)
-    print(report)
+    result_df = pd.DataFrame()
+    for idx, col in enumerate(category_names):
+        result_df.loc["accuracy", col] = accuracy_score(y_test[:, idx], y_pred[:, idx])
+        result_df.loc["roc_auc_score", col] = roc_auc_score(y_test[:, idx], y_pred[:, idx])
+    print(result_df.to_string())
+    return result_df
 
 
 def save_model(model, model_filepath: str):
@@ -86,7 +82,7 @@ def main():
     if len(sys.argv) == 3:
         # download prerequisites
         nltk.download("wordnet")  # download for lemmatization
-        nltk.download("stopwords")
+        nltk.download("stopwords")  # download for stopwords
         nltk.download("punkt")
         nltk.download("omw-1.4")
 
