@@ -25,6 +25,12 @@ def tokenize(text: str):  # , use_stemmer: bool = False, use_lemmatizer: bool = 
 
 
 def compute_avg_columnwise_accuracy(y_true, y_pred):
+    """
+    Computes the column-wise accuracy average since target is multioutput
+    :param y_true: array-like true values of target
+    :param y_pred: array-like predicted values of target
+    :return: array 1d of mean accuracy over columns
+    """
     accuracy_results = []
     for idx, column in enumerate(y_true.columns):
         # compute individual column-wise accuracy

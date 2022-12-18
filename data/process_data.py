@@ -26,7 +26,12 @@ def load_data(messages_filepath: str = "messages.csv", categories_filepath: str 
     return df
 
 
-def clean_data(df):
+def clean_data(df: pd.DataFrame):
+    """
+    Cleans and prepares the data to be ingested into a SQLite database
+    :param df: pd.DataFrame source dataframe
+    :return: pd.DataFrame processed dataframe
+    """
     # explode the categories column categories dataframe
     exploded_cols = df["categories"].str.split(";", expand=True)
     df = pd.concat([df, exploded_cols], axis=1)
@@ -51,6 +56,12 @@ def clean_data(df):
 
 
 def save_data(df, database_filepath: str = "DisasterResponse.db"):
+    """
+    Saves the data to a SQLite database file
+    :param df: source dataframe
+    :param database_filepath: str local path to database file
+    :return: None
+    """
     # insert to database
     engine = sqlalchemy.create_engine(os.path.join("sqlite:///", database_filepath))
     df.to_sql("DisasterResponseTable", engine, index=False, if_exists="replace")
