@@ -45,7 +45,9 @@ def clean_data(df: pd.DataFrame):
 
     # binarize the target columns
     for col in df.columns[4:]:
-        df.loc[:, col] = df.loc[:, col].apply(lambda x: x.split("-")[1])
+        df.loc[:, col] = df.loc[:, col].apply(lambda x: x.split("-")[1]).astype(int)
+        df.loc[df[col] > 1, col] = 1
+        df.loc[df[col] < 0, col] = 0
 
     # check for duplicates
     print("Number of duplicate rows:", df.duplicated().sum())
