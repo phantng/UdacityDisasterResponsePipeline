@@ -25,32 +25,24 @@ model = joblib.load("../models/clf.pkl")
 @app.route('/index')
 def index():
     # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
+    # plot genre value counts
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
 
-    # create visuals
-    # TODO: Below is an example - modify to create your own visuals
-    graphs = [
-        {
-            'data': [
-                Bar(
-                    x=genre_names,
-                    y=genre_counts
-                )
-            ],
+    # category columns value count
+    categories = df.iloc[:, 4:]
+    categories_value_counts = categories.astype(int).mean(axis=0)  # sum everything up since they are binary
 
-            'layout': {
-                'title': 'Distribution of Message Genres',
-                'yaxis': {
-                    'title': "Count"
-                },
-                'xaxis': {
-                    'title': "Genre"
-                }
-            }
-        }
-    ]
+    # create visuals
+    graphs = [{
+        'data': [Bar(x=genre_names, y=genre_counts)],
+        'layout': {'title': 'Distribution of Message Genres', 'yaxis': {'title': "Count"}, 'xaxis': {'title': "Genre"}}
+    }]
+    graphs += [{
+        'data': [Bar(x=categories_value_counts, y=categories.columns, orientation="h")],
+        'layout': {'title': 'Distribution of Message Categories', 'yaxis': {'title': "Mean Count"},
+                   'xaxis': {'title': "Categories"}}
+    }]
 
     # encode plotly graphs in JSON
     ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
